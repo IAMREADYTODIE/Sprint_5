@@ -1,0 +1,4 @@
+selenium
+pytest
+webdriver-manager
+requests # На всякий случай, чтобы была возможность работать с API

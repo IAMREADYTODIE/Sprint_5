@@ -1,0 +1,25 @@
+# Игнорировать папки Python
+__pycache__/
+*.pyc
+
+# Игнорировать папки Pytest
+.pytest_cache/
+.tox/
+.coverage
+
+# Игнорировать виртуальное окружение
+venv/
+env/
+
+# Игнорировать файлы Mac/Windows
+.DS_Store
+Thumbs.db
+
+# Игнорировать секретные данные
+.env
+
+# Игнорировать файлы IDE (VS Code)
+.vscode/
+
+# Игнорировать отчеты
+htmlcov/
