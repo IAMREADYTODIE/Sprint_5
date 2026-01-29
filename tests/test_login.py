@@ -1,63 +1,66 @@
 import pytest
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from data import MAIN_URL, PROFILE_URL, REGISTER_URL, FORGOT_PASSWORD_URL
+from data import Urls
 from locators import TestLocators
+from helpers import login_user
 
 class TestLogin:
 
-    def login_user(self, driver, email, password):
-        """Метод авторизации пользователя."""
-        # Ждем появления полей
-        WebDriverWait(driver, 15).until(EC.visibility_of_element_located(TestLocators.LOGIN_EMAIL_FIELD))
-        driver.find_element(*TestLocators.LOGIN_EMAIL_FIELD).send_keys(email)
-        driver.find_element(*TestLocators.LOGIN_PASSWORD_FIELD).send_keys(password)
+    def test_login_from_main_page_button(self, driver, registered_user):
+        """Проверка входа через кнопку 'Войти в аккаунт' на главной."""
+        # 1. Открываем главную
+        driver.get(Urls.MAIN_URL)
         
-        # Кликаем "Войти"
-        driver.find_element(*TestLocators.LOGIN_BUTTON).click()
+        # 2. Кликаем кнопку входа
+        WebDriverWait(driver, 15).until(EC.element_to_be_clickable(TestLocators.LOGIN_BUTTON_MAIN))
+        driver.find_element(*TestLocators.LOGIN_BUTTON_MAIN).click()
         
-        # Ждем, пока кнопка "Войти" исчезнет (гарантия перехода из формы)
-        WebDriverWait(driver, 15).until(EC.invisibility_of_element_located(TestLocators.LOGIN_BUTTON))
+        # 3. Вводим данные (через хелпер)
+        login_user(driver, registered_user['email'], registered_user['password'])
 
-    @pytest.mark.parametrize("login_type, locator", [
-        ("main_page_button", TestLocators.LOGIN_BUTTON_MAIN),
-        ("personal_cabinet_button", TestLocators.PERSONAL_CABINET_BUTTON),
-    ])
-    def test_login_from_main_page_elements(self, driver, registered_user, login_type, locator):
-        """Вход через элементы на главной странице."""
-        driver.get(MAIN_URL)
-        WebDriverWait(driver, 15).until(EC.element_to_be_clickable(locator))
-        driver.find_element(*locator).click()
-        
-        self.login_user(driver, registered_user['email'], registered_user['password'])
+        # 4. Проверка: успешный переход на главную
+        assert WebDriverWait(driver, 15).until(EC.url_to_be(Urls.MAIN_URL))
 
-        # Проверка: переходим в личный кабинет, чтобы подтвердить статус авторизации
+    def test_login_from_personal_cabinet_button(self, driver, registered_user):
+        """Проверка входа через кнопку 'Личный кабинет'."""
+        driver.get(Urls.MAIN_URL)
+        
+        # 1. Кликаем Личный кабинет
         WebDriverWait(driver, 15).until(EC.element_to_be_clickable(TestLocators.PERSONAL_CABINET_BUTTON))
         driver.find_element(*TestLocators.PERSONAL_CABINET_BUTTON).click()
         
-        # Если в профиле появилась кнопка Выход - тест прошел
-        WebDriverWait(driver, 15).until(EC.visibility_of_element_located(TestLocators.LOGOUT_BUTTON))
-        assert PROFILE_URL in driver.current_url
+        # 2. Логинимся
+        login_user(driver, registered_user['email'], registered_user['password'])
 
-    @pytest.mark.parametrize("login_type, locator", [
-        ("registration_link", TestLocators.LOGIN_LINK_REGISTRATION),
-        ("recovery_link", TestLocators.LOGIN_LINK_RECOVERY),
-    ])
-    def test_login_from_form_links(self, driver, registered_user, login_type, locator):
-        """Вход через ссылки в формах регистрации и восстановления."""
-        if login_type == "registration_link":
-            driver.get(REGISTER_URL)
-        else:
-            driver.get(FORGOT_PASSWORD_URL)
-        
-        WebDriverWait(driver, 15).until(EC.element_to_be_clickable(locator))
-        driver.find_element(*locator).click()
-        
-        self.login_user(driver, registered_user['email'], registered_user['password'])
+        # 3. Проверка
+        assert WebDriverWait(driver, 15).until(EC.url_to_be(Urls.MAIN_URL))
 
-        # Проверка авторизации через переход в профиль
-        WebDriverWait(driver, 15).until(EC.element_to_be_clickable(TestLocators.PERSONAL_CABINET_BUTTON))
-        driver.find_element(*TestLocators.PERSONAL_CABINET_BUTTON).click()
+    def test_login_from_registration_form(self, driver, registered_user):
+        """Проверка входа через ссылку в форме регистрации."""
+        driver.get(Urls.REGISTER_URL)
         
-        WebDriverWait(driver, 15).until(EC.visibility_of_element_located(TestLocators.LOGOUT_BUTTON))
-        assert PROFILE_URL in driver.current_url
+        # 1. Кликаем "Войти"
+        WebDriverWait(driver, 15).until(EC.element_to_be_clickable(TestLocators.LOGIN_LINK_REGISTRATION))
+        driver.find_element(*TestLocators.LOGIN_LINK_REGISTRATION).click()
+        
+        # 2. Логинимся
+        login_user(driver, registered_user['email'], registered_user['password'])
+
+        # 3. Проверка
+        assert WebDriverWait(driver, 15).until(EC.url_to_be(Urls.MAIN_URL))
+
+    def test_login_from_recovery_form(self, driver, registered_user):
+        """Проверка входа через ссылку в форме восстановления пароля."""
+        driver.get(Urls.FORGOT_PASSWORD_URL)
+        
+        # 1. Кликаем "Войти"
+        WebDriverWait(driver, 15).until(EC.element_to_be_clickable(TestLocators.LOGIN_LINK_RECOVERY))
+        driver.find_element(*TestLocators.LOGIN_LINK_RECOVERY).click()
+        
+        # 2. Логинимся
+        login_user(driver, registered_user['email'], registered_user['password'])
+
+        # 3. Проверка
+        assert WebDriverWait(driver, 15).until(EC.url_to_be(Urls.MAIN_URL))
+        

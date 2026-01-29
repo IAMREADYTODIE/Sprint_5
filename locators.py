@@ -28,3 +28,4 @@ class TestLocators:
     TAB_BUNS = (By.XPATH, ".//span[text()='Булки']/parent::div")
     TAB_SAUCES = (By.XPATH, ".//span[text()='Соусы']/parent::div")
     TAB_FILLINGS = (By.XPATH, ".//span[text()='Начинки']/parent::div")
+    
